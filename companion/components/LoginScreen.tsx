@@ -72,12 +72,12 @@ export function LoginScreen() {
         {Platform.OS !== "ios" && (
           <TouchableOpacity
             onPress={handleSignUp}
-            className="mt-3 items-center justify-center py-1"
+            className="mt-3 items-center justify-center px-2"
             style={Platform.OS === "web" ? { cursor: "pointer" } : undefined}
             activeOpacity={0.7}
           >
             <View>
-              <Text className="text-[15px] text-gray-500 dark:text-[#A3A3A3]">
+              <Text className="text-[15px] text-gray-500 dark:text-[#A3A3A3] ">
                 Don't have an account?{" "}
                 <Text className="font-semibold text-gray-900 dark:text-white">Sign up</Text>
               </Text>

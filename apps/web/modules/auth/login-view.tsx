@@ -1,25 +1,8 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import classNames from "classnames";
-import { signIn } from "next-auth/react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
-import { z } from "zod";
-
-import { SAMLLogin } from "@calcom/web/modules/auth/components/SAMLLogin";
+import process from "node:process";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import {
-  LastUsed,
-  useLastUsed,
-} from "@calcom/web/modules/auth/hooks/useLastUsed";
-import {
-  HOSTED_CAL_FEATURES,
-  WEBAPP_URL,
-  WEBSITE_URL,
-} from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -28,15 +11,22 @@ import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { EmailField, PasswordField } from "@calcom/ui/components/form";
-
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
-
+import { SAMLLogin } from "@calcom/web/modules/auth/components/SAMLLogin";
+import { LastUsed, useLastUsed } from "@calcom/web/modules/auth/hooks/useLastUsed";
 import AddToHomescreen from "@components/AddToHomescreen";
 import BackupCode from "@components/auth/BackupCode";
 import TwoFactor from "@components/auth/TwoFactor";
 import AuthContainer from "@components/ui/AuthContainer";
-
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { getServerSideProps } from "@server/lib/auth/login/getServerSideProps";
+import classNames from "classnames";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { z } from "zod";
 
 interface LoginValues {
   email: string;
@@ -47,11 +37,7 @@ interface LoginValues {
 }
 
 const GoogleIcon = () => (
-  <img
-    className="mr-2 w-4 h-4 text-subtle"
-    src="/google-icon-colored.svg"
-    alt="Continue with Google Icon"
-  />
+  <img className="mr-2 w-4 h-4 text-subtle" src="/google-icon-colored.svg" alt="Continue with Google Icon" />
 );
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export default function Login({
@@ -71,17 +57,13 @@ export default function Login({
         .string()
         .min(1, `${t("error_required_field")}`)
         .regex(emailRegex, `${t("enter_valid_email")}`),
-      ...(totpEmail
-        ? {}
-        : { password: z.string().min(1, `${t("error_required_field")}`) }),
+      ...(totpEmail ? {} : { password: z.string().min(1, `${t("error_required_field")}`) }),
     })
     // Passthrough other fields like totpCode
     .passthrough();
   const methods = useForm<LoginValues>({ resolver: zodResolver(formSchema) });
   const { register, formState } = methods;
-  const [twoFactorRequired, setTwoFactorRequired] = useState(
-    !!totpEmail || false
-  );
+  const [twoFactorRequired, setTwoFactorRequired] = useState(!!totpEmail || false);
   const [twoFactorLostAccess, setTwoFactorLostAccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [lastUsed, setLastUsed] = useLastUsed();
@@ -90,15 +72,9 @@ export default function Login({
     // [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
     // Don't leak information about whether an email is registered or not
     [ErrorCode.IncorrectEmailPassword]: t("incorrect_email_password"),
-    [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t(
-      "please_try_again"
-    )}`,
-    [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t(
-      "please_try_again_and_contact_us"
-    )}`,
-    [ErrorCode.ThirdPartyIdentityProviderEnabled]: t(
-      "account_created_with_identity_provider"
-    ),
+    [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t("please_try_again")}`,
+    [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
+    [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
   let callbackUrl = searchParams?.get("callbackUrl") || "";
@@ -138,8 +114,7 @@ export default function Login({
           setErrorMessage(null);
         }}
         StartIcon="arrow-left"
-        color="minimal"
-      >
+        color="minimal">
         {t("go_back")}
       </Button>
       {!twoFactorLostAccess ? (
@@ -150,8 +125,7 @@ export default function Login({
             methods.setValue("totpCode", "");
           }}
           StartIcon="lock"
-          color="minimal"
-        >
+          color="minimal">
           {t("lost_access")}
         </Button>
       ) : null}
@@ -163,8 +137,7 @@ export default function Login({
       onClick={() => {
         window.location.replace("/");
       }}
-      color="minimal"
-    >
+      color="minimal">
       {t("cancel")}
     </Button>
   );
@@ -182,18 +155,14 @@ export default function Login({
     else if (!res.error) {
       setLastUsed("credentials");
       router.push(callbackUrl);
-    } else if (res.error === ErrorCode.SecondFactorRequired)
-      setTwoFactorRequired(true);
-    else if (res.error === ErrorCode.IncorrectBackupCode)
-      setErrorMessage(t("incorrect_backup_code"));
-    else if (res.error === ErrorCode.MissingBackupCodes)
-      setErrorMessage(t("missing_backup_codes"));
+    } else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
+    else if (res.error === ErrorCode.IncorrectBackupCode) setErrorMessage(t("incorrect_backup_code"));
+    else if (res.error === ErrorCode.MissingBackupCodes) setErrorMessage(t("missing_backup_codes"));
     // fallback if error not found
     else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
   };
 
-  const { data, isPending, error } =
-    trpc.viewer.public.ssoConnections.useQuery();
+  const { data, isPending, error } = trpc.viewer.public.ssoConnections.useQuery();
 
   useEffect(
     function refactorMeWithoutEffect() {
@@ -218,12 +187,10 @@ export default function Login({
             ? !totpEmail
               ? TwoFactorFooter
               : ExternalTotpFooter
-            : process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true" &&
-              searchParams?.get("register") !== "false"
-            ? LoginFooter
-            : null
-        }
-      >
+            : process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true" && searchParams?.get("register") !== "false"
+              ? LoginFooter
+              : null
+        }>
         <FormProvider {...methods}>
           {!twoFactorRequired && (
             <>
@@ -241,8 +208,7 @@ export default function Login({
                       await signIn("google", {
                         callbackUrl,
                       });
-                    }}
-                  >
+                    }}>
                     <span>{t("signin_with_google")}</span>
                     {lastUsed === "google" && <LastUsed />}
                   </Button>
@@ -270,31 +236,20 @@ export default function Login({
             </>
           )}
 
-          <form
-            onSubmit={methods.handleSubmit(onSubmit)}
-            noValidate
-            data-testid="login-form"
-          >
+          <form onSubmit={methods.handleSubmit(onSubmit)} noValidate data-testid="login-form">
             <div>
-              <input
-                defaultValue={csrfToken || undefined}
-                type="hidden"
-                hidden
-                {...register("csrfToken")}
-              />
+              <input defaultValue={csrfToken || undefined} type="hidden" hidden {...register("csrfToken")} />
             </div>
             <div className="stack-y-6">
               <div
                 className={classNames("stack-y-6", {
                   hidden: twoFactorRequired,
-                })}
-              >
+                })}>
                 <EmailField
                   id="email"
+                  classname="mb-0 px-2"
                   label={t("email_address")}
-                  defaultValue={
-                    totpEmail || (searchParams?.get("email") as string)
-                  }
+                  defaultValue={totpEmail || (searchParams?.get("email") as string)}
                   placeholder="john.doe@example.com"
                   required
                   autoComplete="email"
@@ -305,40 +260,30 @@ export default function Login({
                     id="password"
                     autoComplete="current-password"
                     required={!totpEmail}
-                    className="mb-0"
+                    className="mb-0 px-2"
                     {...register("password")}
                   />
                   <div className="absolute -top-[2px] ltr:right-0 rtl:left-0">
                     <Link
                       href="/auth/forgot-password"
                       tabIndex={-1}
-                      className="text-sm font-medium text-default"
-                    >
+                      className="text-sm font-medium text-default">
                       {t("forgot")}
                     </Link>
                   </div>
                 </div>
               </div>
 
-              {twoFactorRequired ? (
-                !twoFactorLostAccess ? (
-                  <TwoFactor center />
-                ) : (
-                  <BackupCode center />
-                )
-              ) : null}
+              {twoFactorRequired ? !twoFactorLostAccess ? <TwoFactor center /> : <BackupCode center /> : null}
 
               {errorMessage && <Alert severity="error" title={errorMessage} />}
               <Button
                 type="submit"
                 color="secondary"
                 disabled={formState.isSubmitting}
-                className="justify-center w-full"
-              >
+                className="justify-center w-full">
                 <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
-                {lastUsed === "credentials" && !twoFactorRequired && (
-                  <LastUsed className="text-gray-600" />
-                )}
+                {lastUsed === "credentials" && !twoFactorRequired && <LastUsed className="text-gray-600" />}
               </Button>
             </div>
           </form>
