@@ -1,0 +1,15 @@
+{
+   "name": "Proton Calendar",
+   "description": "Read-only integration with Proton Calendar via ICS feed to prevent double bookings.",
+   "type": "protoncalendar_other_calendar",
+   "slug": "protoncalendar",
+   "variant": "calendar",
+   "categories": [
+      "calendar"
+   ],
+   "logo": "icon.svg",
+   "publisher": "Cal.com",
+   "email": "help@cal.com",
+   "dirName": "protoncalendar",
+   "isOAuth": false
+}
