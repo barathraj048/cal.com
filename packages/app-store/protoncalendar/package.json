@@ -6,7 +6,9 @@
   "main": "./index.ts",
   "description": "Proton Calendar integration for Cal.com",
   "dependencies": {
-    "@calcom/lib": "workspace:*"
+    "@calcom/dayjs": "workspace:*",
+    "@calcom/lib": "workspace:*",
+    "ical.js": "1.5.0"
   },
   "devDependencies": {
     "@calcom/types": "workspace:*"
